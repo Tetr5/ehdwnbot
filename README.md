@@ -34,4 +34,5 @@ keyerror하고 message이런식으로 뜬 경우<br>
 # 문의
 <img src="https://img.shields.io/badge/judong1094@gmail.com-EA4335?style=for-the-badge&logo=gmail&logoColor=white">
 <img src="https://img.shields.io/badge/ehdwn73-5865F2?style=for-the-badge&logo=discord&logoColor=white">
-쓸때 최소한의 출처는 남기세요.
+쓸때 최소한의 출처는 남기세요.<br>
+EX. 봇 계정에 https://naver.me/FFGwfSNY 의 소스코드를 사용했다고 남기기
