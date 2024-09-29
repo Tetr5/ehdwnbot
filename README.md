@@ -1,6 +1,8 @@
 # 동주봇
 [엔트리이야기](<https://playentry.org/community/entrystory/>)에서 봇을 호출할수 있게 해주는 툴입니다.<br>
 Streamlit을 사용했으며 실행할땐 터미널에서 streamlit run app.py로 실행할수 있습니다.
+
+심심할때마다 업데이트합니다.
 <br>
 <br>
 # 주의사항
