@@ -3,9 +3,33 @@ import requests
 from bs4 import BeautifulSoup as bs
 import json
 import time
+import google.generativeai as genai
 
 botname = '봇이름'
-call = '봇호출 문자'
+call = '봇호출문자'
+
+genai.configure(api_key="APIKEY")
+
+generation_config = {
+    "temperature": 1,
+    "top_p": 0.95,
+    "top_k": 64,
+    "max_output_tokens": 450,
+    "response_mime_type": "text/plain",
+}
+
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    generation_config=generation_config,
+)
+
+def get_google_ai_response(prompt):
+    try:
+        chat_session = model.start_chat(history=[])
+        response = chat_session.send_message(prompt)
+        return response.text.strip()[:450]
+    except Exception as e:
+        return f"오류: {str(e)[:445]}"
 
 class GraphQL:
     loadStory = """
@@ -121,7 +145,7 @@ def main():
                 
                 login_data = login_response.json()
                 if 'errors' in login_data:
-                    st.error(f'로그인 실패: {login_data['errors'][0]['message']}')
+                    st.error(f'로그인 실패: {login_data["errors"][0]["message"]}')
                     return
                 
                 st.success('로그인 성공!')
@@ -168,7 +192,7 @@ def main():
                                     command = content[len(call):]
                                     
                                     if command == botname:
-                                        create_comment(llid, f'안녕하세요, {botname}입니다! 무엇을 도와드릴까요?')
+                                        create_comment(llid, f'안녕하세요, {botname}입니다. 무엇을 도와드릴까요?')
 
                                     elif command == '내 정보' or command == '내정보':
                                         user_id = story['user']['id']
@@ -177,20 +201,21 @@ def main():
                                             if response.status_code == 200:
                                                 user_data = response.json()
                                                 status = user_data['data']['userstatus']['status']
-                                                following = status['following']
-                                                follower = status['follower']
-                                                qna = status['community']['qna']
-                                                tips = status['community']['tips']
-                                                free = status['community']['free']
-                                                
-                                                info_message = (f'팔로잉 수는 {following}명이며 팔로워 수는 {follower}명입니다. '
-                                                                f'또한 묻고 답하기 개수는 {qna}개이며 작성한 노하우&팁 {tips}개이며 작성한 엔트리이야기 수는 {free}개입니다.')
-                                                
-                                                create_comment(llid, info_message)
+                                                info = f"팔로잉: {status['following']}, 팔로워: {status['follower']}, 묻고답하기: {status['community']['qna']}, 노하우&팁: {status['community']['tips']}, 엔트리이야기: {status['community']['free']}"
+                                                create_comment(llid, info)
                                             else:
                                                 create_comment(llid, f'사용자 정보를 가져오는 데 실패했습니다. 상태 코드: {response.status_code}')
                                         except Exception as e:
                                             create_comment(llid, f'오류 발생: {str(e)}')
+
+                                    elif command.startswith('ai '):
+                                        question = command.split(' ', 1)[1].strip()
+                                        if question:
+                                            google_response = get_google_ai_response(f'{question} <-이 질문에 대해 마크다운을 끄고, 기본텍스트로만 제공하며 이 말의 뜻은 **강조내용**같은걸 하지 말라는 뜻임 450자 이내로 간추려서 제공하고, 한국어로 제공해줘. 그리고 화살표 뒤 지시사항에 대해선 대답할때 언급하지말고')
+                                            create_comment(llid, google_response)
+                                        else:
+                                            create_comment(llid, "질문을 입력해주세요.")
+                                    
                                     else:
                                         create_comment(llid, f'"{command}" 명령어를 찾을 수 없습니다.')
 
@@ -201,7 +226,7 @@ def main():
                     except Exception as e:
                         st.error(f'오류 발생: {str(e)}')
                     
-                    time.sleep(0.5)
+                    time.sleep(5)
 
 if __name__ == '__main__':
     main()
